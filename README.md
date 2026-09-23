@@ -66,6 +66,7 @@ The player must navigate these challenges while completing deliveries and managi
 - Pause and resume
 - Game-over system
 - Restart without refreshing the browser
+- Dust particle trail effect while the delivery vehicle is moving
 
 ---
 
@@ -124,6 +125,12 @@ All AI-assisted code was tested in the project, and the functionality was review
 The separately required original feature is to be developed without Generative AI assistance.
 
 ---
+
+## Dust Particle Trail
+
+EcoDash includes a dust particle trail that appears behind the delivery vehicle while it is moving.
+
+The effect uses multiple particles that are created behind the vehicle. Each particle moves slightly, increases in size and gradually fades away. This creates a visual dust effect that fits the African road environment and makes vehicle movement more realistic.
 
 ## Technologies Used
 
