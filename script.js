@@ -1,632 +1,247 @@
-// ===============================
-// CANVAS
-// ===============================
-
 const canvas = document.querySelector("#gameCanvas");
 const ctx = canvas.getContext("2d");
 
-
-// ===============================
-// USER INTERFACE
-// ===============================
-
-const batteryDisplay =
-    document.querySelector("#battery");
-
-const batteryFill =
-    document.querySelector("#batteryFill");
-
-const scoreDisplay =
-    document.querySelector("#score");
-
-const highScoreDisplay =
-    document.querySelector("#highScore");
-
-const deliveriesDisplay =
-    document.querySelector("#deliveries");
-
-const distanceDisplay =
-    document.querySelector("#distance");
-
-const energyDisplay =
-    document.querySelector("#energy");
-
-const efficiencyDisplay =
-    document.querySelector("#efficiency");
-
-const startScreen =
-    document.querySelector("#startScreen");
-
-const gameOverScreen =
-    document.querySelector("#gameOverScreen");
-
-const pauseScreen =
-    document.querySelector("#pauseScreen");
-
-const startButton =
-    document.querySelector("#startButton");
-
-const restartButton =
-    document.querySelector("#restartButton");
-
-const resumeButton =
-    document.querySelector("#resumeButton");
-
-const finalScoreDisplay =
-    document.querySelector("#finalScore");
-
-const message =
-    document.querySelector("#message");
-
-
-// ===============================
-// CANVAS SIZE
-// ===============================
+const batteryDisplay = document.querySelector("#battery");
+const batteryFill = document.querySelector("#batteryFill");
+const scoreDisplay = document.querySelector("#score");
+const highScoreDisplay = document.querySelector("#highScore");
+const deliveriesDisplay = document.querySelector("#deliveries");
+const distanceDisplay = document.querySelector("#distance");
+const energyDisplay = document.querySelector("#energy");
+const efficiencyDisplay = document.querySelector("#efficiency");
+const startScreen = document.querySelector("#startScreen");
+const gameOverScreen = document.querySelector("#gameOverScreen");
+const pauseScreen = document.querySelector("#pauseScreen");
+const startButton = document.querySelector("#startButton");
+const restartButton = document.querySelector("#restartButton");
+const resumeButton = document.querySelector("#resumeButton");
+const finalScoreDisplay = document.querySelector("#finalScore");
+const message = document.querySelector("#message");
 
 function resizeCanvas() {
-
-    canvas.width =
-        window.innerWidth;
-
-    canvas.height =
-        window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
 
-window.addEventListener(
-    "resize",
-    resizeCanvas
-);
-
+window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
 
-// ===============================
-// PLAYER CLASS
-// ===============================
-
 class Player {
-
     constructor() {
-
         this.x = 150;
-
-        this.y =
-            canvas.height / 2;
-
+        this.y = canvas.height / 2;
         this.radius = 25;
 
         this.velocityX = 0;
         this.velocityY = 0;
 
         this.acceleration = 0.25;
-
         this.friction = 0.96;
-
         this.maxSpeed = 6;
 
         this.angle = 0;
 
         this.battery = 100;
-
         this.distance = 0;
-
         this.energyUsed = 0;
     }
 
-
     update(keys) {
-
-        // -----------------------
-        // FORWARD
-        // -----------------------
-
         if (keys["ArrowUp"]) {
-
-            this.velocityX +=
-                Math.cos(this.angle) *
-                this.acceleration;
-
-            this.velocityY +=
-                Math.sin(this.angle) *
-                this.acceleration;
+            this.velocityX += Math.cos(this.angle) * this.acceleration;
+            this.velocityY += Math.sin(this.angle) * this.acceleration;
 
             this.battery -= 0.025;
-
             this.energyUsed += 0.025;
         }
 
-
-        // -----------------------
-        // REVERSE
-        // -----------------------
-
         if (keys["ArrowDown"]) {
-
-            this.velocityX -=
-                Math.cos(this.angle) *
-                this.acceleration;
-
-            this.velocityY -=
-                Math.sin(this.angle) *
-                this.acceleration;
+            this.velocityX -= Math.cos(this.angle) * this.acceleration;
+            this.velocityY -= Math.sin(this.angle) * this.acceleration;
 
             this.battery -= 0.035;
-
             this.energyUsed += 0.035;
         }
 
-
-        // -----------------------
-        // TURN LEFT
-        // -----------------------
-
         if (keys["ArrowLeft"]) {
-
             this.angle -= 0.07;
         }
 
-
-        // -----------------------
-        // TURN RIGHT
-        // -----------------------
-
         if (keys["ArrowRight"]) {
-
             this.angle += 0.07;
         }
 
+        this.velocityX *= this.friction;
+        this.velocityY *= this.friction;
 
-        // -----------------------
-        // FRICTION
-        // -----------------------
+        const speed = Math.sqrt(
+            this.velocityX ** 2 +
+            this.velocityY ** 2
+        );
 
-        this.velocityX *=
-            this.friction;
-
-        this.velocityY *=
-            this.friction;
-
-
-        // -----------------------
-        // SPEED
-        // -----------------------
-
-        const speed =
-            Math.sqrt(
-
-                this.velocityX ** 2 +
-
-                this.velocityY ** 2
-            );
-
-
-        // Maximum speed
-
-        if (
-            speed >
-            this.maxSpeed
-        ) {
-
+        if (speed > this.maxSpeed) {
             this.velocityX =
-                (
-                    this.velocityX /
-                    speed
-                ) *
-                this.maxSpeed;
+                (this.velocityX / speed) * this.maxSpeed;
 
             this.velocityY =
-                (
-                    this.velocityY /
-                    speed
-                ) *
-                this.maxSpeed;
+                (this.velocityY / speed) * this.maxSpeed;
         }
 
+        this.x += this.velocityX;
+        this.y += this.velocityY;
 
-        // -----------------------
-        // MOVE VEHICLE
-        // -----------------------
+        this.distance += speed * 0.01;
 
-        this.x +=
-            this.velocityX;
-
-        this.y +=
-            this.velocityY;
-
-
-        // -----------------------
-        // DISTANCE
-        // -----------------------
-
-        this.distance +=
-            speed * 0.01;
-
-
-        // -----------------------
-        // SCREEN BOUNDARIES
-        // -----------------------
-
-        if (
-            this.x -
-            this.radius <
-            0
-        ) {
-
-            this.x =
-                this.radius;
-
-            this.velocityX *=
-                -0.5;
+        if (this.x - this.radius < 0) {
+            this.x = this.radius;
+            this.velocityX *= -0.5;
         }
 
-
-        if (
-            this.x +
-            this.radius >
-            canvas.width
-        ) {
-
-            this.x =
-                canvas.width -
-                this.radius;
-
-            this.velocityX *=
-                -0.5;
+        if (this.x + this.radius > canvas.width) {
+            this.x = canvas.width - this.radius;
+            this.velocityX *= -0.5;
         }
 
-
-        if (
-            this.y -
-            this.radius <
-            0
-        ) {
-
-            this.y =
-                this.radius;
-
-            this.velocityY *=
-                -0.5;
+        if (this.y - this.radius < 0) {
+            this.y = this.radius;
+            this.velocityY *= -0.5;
         }
 
-
-        if (
-            this.y +
-            this.radius >
-            canvas.height
-        ) {
-
-            this.y =
-                canvas.height -
-                this.radius;
-
-            this.velocityY *=
-                -0.5;
+        if (this.y + this.radius > canvas.height) {
+            this.y = canvas.height - this.radius;
+            this.velocityY *= -0.5;
         }
 
-
-        // Battery cannot be negative
-
-        if (
-            this.battery < 0
-        ) {
-
+        if (this.battery < 0) {
             this.battery = 0;
         }
     }
 
-
     draw() {
-
         ctx.save();
 
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
 
-        // Move drawing position
-        // to player position
+        ctx.fillStyle = "#222";
+        ctx.fillRect(-25, -15, 50, 30);
 
-        ctx.translate(
-            this.x,
-            this.y
-        );
+        ctx.fillStyle = "#f4c542";
+        ctx.fillRect(5, -10, 20, 20);
 
+        ctx.fillStyle = "#111";
 
-        // Rotate vehicle
-
-        ctx.rotate(
-            this.angle
-        );
-
-
-        // -----------------------
-        // VEHICLE BODY
-        // -----------------------
-
-        ctx.fillStyle =
-            "#222";
-
-        ctx.fillRect(
-            -25,
-            -15,
-            50,
-            30
-        );
-
-
-        // -----------------------
-        // SOLAR PANEL
-        // -----------------------
-
-        ctx.fillStyle =
-            "#f4c542";
-
-        ctx.fillRect(
-            5,
-            -10,
-            20,
-            20
-        );
-
-
-        // -----------------------
-        // WHEELS
-        // -----------------------
-
-        ctx.fillStyle =
-            "#111";
-
-        ctx.fillRect(
-            -18,
-            -20,
-            10,
-            8
-        );
-
-        ctx.fillRect(
-            8,
-            -20,
-            10,
-            8
-        );
-
-        ctx.fillRect(
-            -18,
-            12,
-            10,
-            8
-        );
-
-        ctx.fillRect(
-            8,
-            12,
-            10,
-            8
-        );
-
+        ctx.fillRect(-18, -20, 10, 8);
+        ctx.fillRect(8, -20, 10, 8);
+        ctx.fillRect(-18, 12, 10, 8);
+        ctx.fillRect(8, 12, 10, 8);
 
         ctx.restore();
     }
 }
 
 
-// ===============================
-// OBSTACLE CLASS
-// ===============================
-
 class Obstacle {
-
-    constructor(
-        x,
-        y,
-        width,
-        height,
-        type
-    ) {
-
+    constructor(x, y, width, height, type) {
         this.x = x;
-
         this.y = y;
-
-        this.width =
-            width;
-
-        this.height =
-            height;
-
-        this.type =
-            type;
+        this.width = width;
+        this.height = height;
+        this.type = type;
     }
 
-
     draw() {
-
-
-        // =======================
-        // POTHOLE
-        // =======================
-
-        if (
-            this.type ===
-            "pothole"
-        ) {
-
-            ctx.fillStyle =
-                "#333";
+        if (this.type === "pothole") {
+            ctx.fillStyle = "#333";
 
             ctx.beginPath();
 
             ctx.ellipse(
-
-                this.x +
+                this.x + this.width / 2,
+                this.y + this.height / 2,
                 this.width / 2,
-
-                this.y +
                 this.height / 2,
-
-                this.width / 2,
-
-                this.height / 2,
-
                 0,
-
                 0,
-
                 Math.PI * 2
             );
 
             ctx.fill();
         }
 
-
-        // =======================
-        // FALLEN TREE
-        // =======================
-
-        else if (
-            this.type ===
-            "tree"
-        ) {
-
-            ctx.fillStyle =
-                "#5d4037";
+        else if (this.type === "tree") {
+            ctx.fillStyle = "#5d4037";
 
             ctx.fillRect(
-
                 this.x,
-
                 this.y,
-
                 this.width,
-
                 this.height
             );
 
-
-            ctx.fillStyle =
-                "#356b35";
+            ctx.fillStyle = "#356b35";
 
             ctx.beginPath();
 
             ctx.arc(
-
-                this.x +
-                this.width / 2,
-
+                this.x + this.width / 2,
                 this.y,
-
                 35,
-
                 0,
-
                 Math.PI * 2
             );
 
             ctx.fill();
         }
 
-
-        // =======================
-        // CONSTRUCTION
-        // =======================
-
-        else if (
-            this.type ===
-            "construction"
-        ) {
-
-            ctx.fillStyle =
-                "#e67e22";
+        else if (this.type === "construction") {
+            ctx.fillStyle = "#e67e22";
 
             ctx.fillRect(
-
                 this.x,
-
                 this.y,
-
                 this.width,
-
                 this.height
             );
 
-
-            ctx.fillStyle =
-                "#fff";
-
-            ctx.font =
-                "20px Arial";
+            ctx.fillStyle = "#fff";
+            ctx.font = "20px Arial";
 
             ctx.fillText(
-
                 "⚠",
-
-                this.x +
-                this.width / 2 -
-                10,
-
-                this.y +
-                this.height / 2 +
-                7
+                this.x + this.width / 2 - 10,
+                this.y + this.height / 2 + 7
             );
         }
 
-
-        // =======================
-        // RIVER / FLOOD
-        // =======================
-
-        else if (
-            this.type ===
-            "river"
-        ) {
-
-            ctx.fillStyle =
-                "#3185a8";
+        else if (this.type === "river") {
+            ctx.fillStyle = "#3185a8";
 
             ctx.fillRect(
-
                 this.x,
-
                 this.y,
-
                 this.width,
-
                 this.height
             );
 
-
-            ctx.strokeStyle =
-                "#8ed1e8";
-
-            ctx.lineWidth =
-                2;
-
+            ctx.strokeStyle = "#8ed1e8";
+            ctx.lineWidth = 2;
 
             for (
-
-                let y =
-                    this.y + 10;
-
-                y <
-                this.y +
-                this.height;
-
+                let y = this.y + 10;
+                y < this.y + this.height;
                 y += 15
-
             ) {
-
                 ctx.beginPath();
 
                 ctx.moveTo(
-
                     this.x + 10,
-
                     y
                 );
 
                 ctx.lineTo(
-
-                    this.x +
-                    this.width -
-                    10,
-
+                    this.x + this.width - 10,
                     y
                 );
 
@@ -634,339 +249,271 @@ class Obstacle {
             }
         }
 
-
-        // =======================
-        // WILDLIFE
-        // =======================
-
-        else if (
-            this.type ===
-            "wildlife"
-        ) {
-
-            ctx.fillStyle =
-                "rgba(139,90,43,0.65)";
+        else if (this.type === "wildlife") {
+            ctx.fillStyle = "rgba(139,90,43,0.65)";
 
             ctx.fillRect(
-
                 this.x,
-
                 this.y,
-
                 this.width,
-
                 this.height
             );
 
-
-            ctx.strokeStyle =
-                "#5d4037";
-
-            ctx.lineWidth =
-                3;
+            ctx.strokeStyle = "#5d4037";
+            ctx.lineWidth = 3;
 
             ctx.strokeRect(
-
                 this.x,
-
                 this.y,
-
                 this.width,
-
                 this.height
             );
 
-
-            ctx.font =
-                "32px Arial";
-
-            ctx.textAlign =
-                "center";
+            ctx.font = "32px Arial";
+            ctx.textAlign = "center";
 
             ctx.fillText(
-
                 "🐘",
-
-                this.x +
-                this.width / 2,
-
-                this.y +
-                this.height / 2 +
-                11
+                this.x + this.width / 2,
+                this.y + this.height / 2 + 11
             );
 
-
-            ctx.textAlign =
-                "left";
+            ctx.textAlign = "left";
         }
     }
 }
 
 
-// ===============================
-// DELIVERY CLASS
-// ===============================
-
 class Delivery {
-
-    constructor(
-        x,
-        y
-    ) {
-
+    constructor(x, y) {
         this.x = x;
-
         this.y = y;
-
-        this.radius =
-            18;
-
-        this.collected =
-            false;
+        this.radius = 18;
+        this.collected = false;
     }
 
-
     draw() {
-
-        if (
-            this.collected
-        ) {
-
-            return;
-        }
-
+        if (this.collected) return;
 
         ctx.beginPath();
 
         ctx.arc(
-
             this.x,
-
             this.y,
-
             this.radius,
-
             0,
-
             Math.PI * 2
         );
 
-
-        ctx.fillStyle =
-            "#f4c542";
-
+        ctx.fillStyle = "#f4c542";
         ctx.fill();
 
-
-        ctx.strokeStyle =
-            "#000";
-
+        ctx.strokeStyle = "#000";
         ctx.stroke();
 
-
-        ctx.fillStyle =
-            "#000";
-
-        ctx.font =
-            "16px Arial";
-
-        ctx.textAlign =
-            "center";
+        ctx.fillStyle = "#000";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "center";
 
         ctx.fillText(
-
             "📦",
-
             this.x,
-
             this.y + 6
         );
 
-
-        ctx.textAlign =
-            "left";
+        ctx.textAlign = "left";
     }
 }
 
 
-// ===============================
-// SOLAR CHARGING ZONE
-// ===============================
-
 class SolarZone {
-
-    constructor(
-        x,
-        y,
-        radius
-    ) {
-
+    constructor(x, y, radius) {
         this.x = x;
-
         this.y = y;
-
-        this.radius =
-            radius;
+        this.radius = radius;
     }
 
-
     draw() {
-
         ctx.beginPath();
 
         ctx.arc(
-
             this.x,
-
             this.y,
-
             this.radius,
-
             0,
-
             Math.PI * 2
         );
 
-
-        // Load-shedding appearance
-
-        if (
-            loadShedding
-        ) {
-
-            ctx.fillStyle =
-                "rgba(120,120,120,0.35)";
-
-            ctx.strokeStyle =
-                "#555";
-
+        if (loadShedding) {
+            ctx.fillStyle = "rgba(120,120,120,0.35)";
+            ctx.strokeStyle = "#555";
         } else {
-
-            ctx.fillStyle =
-                "rgba(255,220,50,0.35)";
-
-            ctx.strokeStyle =
-                "#f4c542";
+            ctx.fillStyle = "rgba(255,220,50,0.35)";
+            ctx.strokeStyle = "#f4c542";
         }
-
 
         ctx.fill();
 
-        ctx.lineWidth =
-            4;
-
+        ctx.lineWidth = 4;
         ctx.stroke();
 
+        ctx.fillStyle = "#111";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "center";
 
-        ctx.fillStyle =
-            "#111";
-
-        ctx.font =
-            "16px Arial";
-
-        ctx.textAlign =
-            "center";
-
-
-        if (
-            loadShedding
-        ) {
-
+        if (loadShedding) {
             ctx.fillText(
-
                 "⚡ OFFLINE",
-
                 this.x,
-
                 this.y + 5
             );
-
         } else {
-
             ctx.fillText(
-
                 "☀ SOLAR",
-
                 this.x,
-
                 this.y + 5
             );
         }
 
-
-        ctx.textAlign =
-            "left";
+        ctx.textAlign = "left";
     }
 }
 
-
-// ===============================
-// GAME VARIABLES
-// ===============================
 
 const keys = {};
 
 let player;
 
 let obstacles = [];
-
 let deliveries = [];
-
 let solarZones = [];
+let dustParticles = [];
 
 let score = 0;
-
 let deliveryCount = 0;
 
-let gameRunning =
-    false;
+let gameRunning = false;
+let gamePaused = false;
 
-let gamePaused =
-    false;
+let weatherTime = 0;
 
-let weatherTime =
-    0;
+let windX = 0;
+let windY = 0;
 
-let windX =
-    0;
+let loadShedding = false;
+let loadSheddingTimer = 0;
 
-let windY =
-    0;
+let raining = true;
 
-let loadShedding =
-    false;
-
-let loadSheddingTimer =
-    0;
-
-let raining =
-    true;
-
-let collisionCooldown =
-    0;
+let collisionCooldown = 0;
 
 
-// ===============================
-// SOUND SYSTEM
-// ===============================
+/* DUST PARTICLES */
 
-let audioContext =
-    null;
+class DustParticle {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
 
+        this.velocityX =
+            (Math.random() - 0.5) * 1.5;
+
+        this.velocityY =
+            (Math.random() - 0.5) * 1.5;
+
+        this.size =
+            4 + Math.random() * 5;
+
+        this.life = 1;
+    }
+
+    update() {
+        this.x += this.velocityX;
+        this.y += this.velocityY;
+
+        this.size += 0.15;
+
+        this.life -= 0.025;
+    }
+
+    draw() {
+        ctx.beginPath();
+
+        ctx.arc(
+            this.x,
+            this.y,
+            this.size,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle =
+            `rgba(160,120,70,${this.life})`;
+
+        ctx.fill();
+    }
+}
+
+
+function createDust() {
+    const speed = Math.sqrt(
+        player.velocityX ** 2 +
+        player.velocityY ** 2
+    );
+
+    if (speed > 1) {
+        const dustX =
+            player.x -
+            Math.cos(player.angle) * 28;
+
+        const dustY =
+            player.y -
+            Math.sin(player.angle) * 28;
+
+        dustParticles.push(
+            new DustParticle(
+                dustX,
+                dustY
+            )
+        );
+    }
+}
+
+
+function updateDust() {
+    for (
+        let i = dustParticles.length - 1;
+        i >= 0;
+        i--
+    ) {
+        dustParticles[i].update();
+
+        if (dustParticles[i].life <= 0) {
+            dustParticles.splice(i, 1);
+        }
+    }
+}
+
+
+function drawDust() {
+    dustParticles.forEach(
+        function(particle) {
+            particle.draw();
+        }
+    );
+}
+
+
+/* SOUND */
+
+let audioContext = null;
 
 function playSound(
     frequency,
     duration,
     type = "sine"
 ) {
-
-    // Create audio context
-    // after user starts interacting
-
-    if (
-        !audioContext
-    ) {
-
+    if (!audioContext) {
         audioContext =
             new (
                 window.AudioContext ||
@@ -974,110 +521,57 @@ function playSound(
             )();
     }
 
-
     const oscillator =
-        audioContext
-            .createOscillator();
-
+        audioContext.createOscillator();
 
     const gain =
-        audioContext
-            .createGain();
+        audioContext.createGain();
 
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
 
-    oscillator.type =
-        type;
+    gain.gain.value = 0.08;
 
-
-    oscillator.frequency.value =
-        frequency;
-
-
-    gain.gain.value =
-        0.08;
-
-
-    oscillator.connect(
-        gain
-    );
-
-
-    gain.connect(
-        audioContext.destination
-    );
-
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
 
     oscillator.start();
 
-
-    gain.gain
-        .exponentialRampToValueAtTime(
-
-            0.001,
-
-            audioContext.currentTime +
-            duration
-        );
-
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioContext.currentTime + duration
+    );
 
     oscillator.stop(
-
-        audioContext.currentTime +
-        duration
+        audioContext.currentTime + duration
     );
 }
 
 
-// ===============================
-// KEYBOARD INPUT
-// ===============================
+/* KEYBOARD */
 
 document.addEventListener(
-
     "keydown",
-
     function(event) {
-
-        keys[event.key] =
-            true;
-
-
-        // Pause using P
+        keys[event.key] = true;
 
         if (
-
-            event.key
-                .toLowerCase() ===
-                "p" &&
-
+            event.key.toLowerCase() === "p" &&
             gameRunning
-
         ) {
+            gamePaused = !gamePaused;
 
-            gamePaused =
-                !gamePaused;
-
-
-            if (
-                gamePaused
-            ) {
-
+            if (gamePaused) {
                 pauseScreen
                     .classList
-                    .remove(
-                        "hidden"
-                    );
+                    .remove("hidden");
 
                 message.textContent =
                     "⏸ Game Paused";
-
             } else {
-
                 pauseScreen
                     .classList
-                    .add(
-                        "hidden"
-                    );
+                    .add("hidden");
 
                 message.textContent =
                     "Game resumed";
@@ -1088,147 +582,80 @@ document.addEventListener(
 
 
 document.addEventListener(
-
     "keyup",
-
     function(event) {
-
-        keys[event.key] =
-            false;
+        keys[event.key] = false;
     }
 );
 
-
-// ===============================
-// COLLISION DETECTION
-// ===============================
 
 function circleRectangleCollision(
     circle,
     rectangle
 ) {
+    const closestX = Math.max(
+        rectangle.x,
+        Math.min(
+            circle.x,
+            rectangle.x +
+            rectangle.width
+        )
+    );
 
-    const closestX =
-        Math.max(
-
-            rectangle.x,
-
-            Math.min(
-
-                circle.x,
-
-                rectangle.x +
-                rectangle.width
-            )
-        );
-
-
-    const closestY =
-        Math.max(
-
-            rectangle.y,
-
-            Math.min(
-
-                circle.y,
-
-                rectangle.y +
-                rectangle.height
-            )
-        );
-
+    const closestY = Math.max(
+        rectangle.y,
+        Math.min(
+            circle.y,
+            rectangle.y +
+            rectangle.height
+        )
+    );
 
     const distanceX =
-        circle.x -
-        closestX;
-
+        circle.x - closestX;
 
     const distanceY =
-        circle.y -
-        closestY;
-
+        circle.y - closestY;
 
     const distanceSquared =
-
-        distanceX *
-        distanceX +
-
-        distanceY *
-        distanceY;
-
+        distanceX * distanceX +
+        distanceY * distanceY;
 
     return (
-
         distanceSquared <
-
-        circle.radius *
-        circle.radius
+        circle.radius * circle.radius
     );
 }
 
 
-// ===============================
-// CHECK DELIVERIES
-// ===============================
-
 function checkDeliveries() {
-
     deliveries.forEach(
-
         function(delivery) {
-
-            if (
-                delivery.collected
-            ) {
-
+            if (delivery.collected) {
                 return;
             }
 
-
             const dx =
-
-                player.x -
-                delivery.x;
-
+                player.x - delivery.x;
 
             const dy =
-
-                player.y -
-                delivery.y;
-
+                player.y - delivery.y;
 
             const distance =
-
                 Math.sqrt(
-
                     dx * dx +
-
                     dy * dy
                 );
 
-
             if (
-
                 distance <
-
                 player.radius +
                 delivery.radius
-
             ) {
-
-                delivery.collected =
-                    true;
-
+                delivery.collected = true;
 
                 deliveryCount++;
-
-
                 score += 100;
-
-
-                // ===================
-                // DELIVERY SOUND
-                // ===================
 
                 playSound(
                     700,
@@ -1236,9 +663,7 @@ function checkDeliveries() {
                     "sine"
                 );
 
-
                 createNewDelivery();
-
 
                 message.textContent =
                     "📦 Supply delivered! +100 points";
@@ -1248,79 +673,42 @@ function checkDeliveries() {
 }
 
 
-// ===============================
-// CREATE DELIVERY
-// ===============================
-
 function createNewDelivery() {
-
     let x;
-
     let y;
+    let validPosition = false;
 
-    let validPosition =
-        false;
-
-
-    while (
-        !validPosition
-    ) {
-
+    while (!validPosition) {
         x =
-
             100 +
-
             Math.random() *
-
             Math.max(
-
                 100,
-
-                canvas.width -
-                200
+                canvas.width - 200
             );
-
 
         y =
-
             150 +
-
             Math.random() *
-
             Math.max(
-
                 100,
-
-                canvas.height -
-                250
+                canvas.height - 250
             );
 
-
         validPosition =
-
             !obstacles.some(
-
-                function(
-                    obstacle
-                ) {
-
+                function(obstacle) {
                     return (
-
                         x >
-                        obstacle.x -
-                        40 &&
-
+                        obstacle.x - 40 &&
 
                         x <
                         obstacle.x +
                         obstacle.width +
                         40 &&
 
-
                         y >
-                        obstacle.y -
-                        40 &&
-
+                        obstacle.y - 40 &&
 
                         y <
                         obstacle.y +
@@ -1331,70 +719,28 @@ function createNewDelivery() {
             );
     }
 
-
     deliveries.push(
-
-        new Delivery(
-            x,
-            y
-        )
+        new Delivery(x, y)
     );
 }
 
 
-// ===============================
-// CHECK OBSTACLES
-// ===============================
-
 function checkObstacles() {
-
-
-    // Collision cooldown
-
-    if (
-        collisionCooldown >
-        0
-    ) {
-
+    if (collisionCooldown > 0) {
         collisionCooldown--;
-
         return;
     }
 
-
     obstacles.forEach(
-
-        function(
-            obstacle
-        ) {
-
-
+        function(obstacle) {
             if (
-
                 circleRectangleCollision(
-
                     player,
-
                     obstacle
                 )
-
             ) {
-
-
-                // -------------------
-                // BOUNCE BACK
-                // -------------------
-
-                player.velocityX *=
-                    -0.7;
-
-                player.velocityY *=
-                    -0.7;
-
-
-                // -------------------
-                // COLLISION SOUND
-                // -------------------
+                player.velocityX *= -0.7;
+                player.velocityY *= -0.7;
 
                 playSound(
                     150,
@@ -1402,225 +748,103 @@ function checkObstacles() {
                     "square"
                 );
 
-
-                // -------------------
-                // NORMAL PENALTY
-                // -------------------
-
                 score =
-
                     Math.max(
-
                         0,
-
                         score - 10
                     );
 
-
-                // ===================
-                // POTHOLE
-                // ===================
-
                 if (
-
                     obstacle.type ===
                     "pothole"
-
                 ) {
-
-                    player.battery -=
-                        2;
-
+                    player.battery -= 2;
 
                     message.textContent =
-
                         "🕳️ Pothole hit! -10 points, -2% battery";
                 }
 
-
-                // ===================
-                // RIVER
-                // ===================
-
                 else if (
-
                     obstacle.type ===
                     "river"
-
                 ) {
-
-                    player.battery -=
-                        3;
-
+                    player.battery -= 3;
 
                     message.textContent =
-
                         "🌊 Flood area! -10 points, -3% battery";
                 }
 
-
-                // ===================
-                // CONSTRUCTION
-                // ===================
-
                 else if (
-
                     obstacle.type ===
                     "construction"
-
                 ) {
-
                     message.textContent =
-
                         "🚧 Construction zone! -10 points";
                 }
 
-
-                // ===================
-                // TREE
-                // ===================
-
                 else if (
-
                     obstacle.type ===
                     "tree"
-
                 ) {
-
-                    player.battery -=
-                        1;
-
+                    player.battery -= 1;
 
                     message.textContent =
-
                         "🌳 Fallen tree! -10 points, -1% battery";
                 }
 
-
-                // ===================
-                // WILDLIFE
-                // ===================
-
                 else if (
-
                     obstacle.type ===
                     "wildlife"
-
                 ) {
-
-                    // Extra 10 points
-                    // Total wildlife
-                    // penalty = 20
-
                     score =
-
                         Math.max(
-
                             0,
-
                             score - 10
                         );
 
-
-                    player.battery -=
-                        4;
-
+                    player.battery -= 4;
 
                     message.textContent =
-
                         "🐘 Wildlife crossing! -20 points, -4% battery";
                 }
 
-
-                // Wait before another
-                // collision penalty
-
-                collisionCooldown =
-                    45;
+                collisionCooldown = 45;
             }
         }
     );
 }
 
 
-// ===============================
-// SOLAR CHARGING
-// ===============================
-
 function checkSolarZones() {
-
     solarZones.forEach(
-
         function(zone) {
-
-
             const dx =
-
-                player.x -
-                zone.x;
-
+                player.x - zone.x;
 
             const dy =
-
-                player.y -
-                zone.y;
-
+                player.y - zone.y;
 
             const distance =
-
                 Math.sqrt(
-
                     dx * dx +
-
                     dy * dy
                 );
 
-
             if (
-
                 distance <
                 zone.radius
-
             ) {
-
-
-                // -------------------
-                // LOAD SHEDDING
-                // -------------------
-
-                if (
-                    loadShedding
-                ) {
-
+                if (loadShedding) {
                     message.textContent =
-
                         "⚡ Load-shedding! Charging station offline.";
-
                 } else {
+                    player.battery += 0.15;
 
-
-                    // -------------------
-                    // CHARGE BATTERY
-                    // -------------------
-
-                    player.battery +=
-                        0.15;
-
-
-                    if (
-
-                        player.battery >
-                        100
-
-                    ) {
-
-                        player.battery =
-                            100;
+                    if (player.battery > 100) {
+                        player.battery = 100;
                     }
 
-
                     message.textContent =
-
                         "☀ Solar Microgrid charging...";
                 }
             }
@@ -1629,897 +853,396 @@ function checkSolarZones() {
 }
 
 
-// ===============================
-// LOAD SHEDDING
-// ===============================
-
 function updateLoadShedding() {
-
-
     loadSheddingTimer++;
 
-
-    // Approximately
-    // every 10 seconds
-
-    if (
-
-        loadSheddingTimer >=
-        600
-
-    ) {
-
+    if (loadSheddingTimer >= 600) {
         loadShedding =
             !loadShedding;
 
+        loadSheddingTimer = 0;
 
-        loadSheddingTimer =
-            0;
-
-
-        if (
-            loadShedding
-        ) {
-
+        if (loadShedding) {
             message.textContent =
-
                 "⚡ Load-shedding active! Solar charging is offline.";
-
         } else {
-
             message.textContent =
-
                 "☀ Power restored! Solar charging is available.";
         }
     }
 }
 
 
-// ===============================
-// ENVIRONMENT PHYSICS
-// ===============================
-
 function updateEnvironment() {
-
-
-    weatherTime +=
-        0.01;
-
-
-    // Wind changes
-    // direction
+    weatherTime += 0.01;
 
     windX =
-
-        Math.sin(
-            weatherTime
-        ) *
-
+        Math.sin(weatherTime) *
         0.015;
 
-
     windY =
-
-        Math.cos(
-            weatherTime
-        ) *
-
+        Math.cos(weatherTime) *
         0.01;
 
-
-    // Wind affects vehicle
-
-    player.velocityX +=
-        windX;
-
-    player.velocityY +=
-        windY;
+    player.velocityX += windX;
+    player.velocityY += windY;
 }
 
 
-// ===============================
-// DRAW ENVIRONMENT
-// ===============================
-
 function drawEnvironment() {
-
-
-    // =======================
-    // AFRICAN LANDSCAPE
-    // =======================
-
-    ctx.fillStyle =
-        "#d9b36c";
+    ctx.fillStyle = "#d9b36c";
 
     ctx.fillRect(
-
         0,
         0,
-
         canvas.width,
-
         canvas.height
     );
 
-
-    // =======================
-    // ROAD
-    // =======================
-
-    ctx.fillStyle =
-        "#777";
+    ctx.fillStyle = "#777";
 
     ctx.fillRect(
-
         0,
-
-        canvas.height / 2 -
-        70,
-
+        canvas.height / 2 - 70,
         canvas.width,
-
         140
     );
 
+    ctx.strokeStyle = "#f5f5f5";
+    ctx.lineWidth = 4;
 
-    // =======================
-    // ROAD LINES
-    // =======================
-
-    ctx.strokeStyle =
-        "#f5f5f5";
-
-    ctx.lineWidth =
-        4;
-
-    ctx.setLineDash(
-        [30, 30]
-    );
+    ctx.setLineDash([30, 30]);
 
     ctx.beginPath();
 
     ctx.moveTo(
-
         0,
-
         canvas.height / 2
     );
 
     ctx.lineTo(
-
         canvas.width,
-
         canvas.height / 2
     );
 
     ctx.stroke();
 
-    ctx.setLineDash(
-        []
-    );
-
-
-    // =======================
-    // BACKGROUND TREES
-    // =======================
+    ctx.setLineDash([]);
 
     for (
-
         let x = 80;
-
-        x <
-        canvas.width;
-
+        x < canvas.width;
         x += 220
-
     ) {
-
         drawTree(
-
             x,
-
-            canvas.height -
-            120
+            canvas.height - 120
         );
     }
-
-
-    // =======================
-    // WIND STATUS
-    // =======================
 
     ctx.fillStyle =
         "rgba(255,255,255,0.8)";
 
-    ctx.font =
-        "14px Arial";
+    ctx.font = "14px Arial";
 
     ctx.fillText(
-
         "💨 Wind affecting vehicle movement",
-
         20,
-
-        canvas.height -
-        20
+        canvas.height - 20
     );
 
+    ctx.font = "bold 16px Arial";
 
-    // =======================
-    // POWER STATUS
-    // =======================
-
-    ctx.font =
-        "bold 16px Arial";
-
-
-    if (
-        loadShedding
-    ) {
-
-        ctx.fillStyle =
-            "#b71c1c";
+    if (loadShedding) {
+        ctx.fillStyle = "#b71c1c";
 
         ctx.fillText(
-
             "⚡ LOAD-SHEDDING: CHARGING OFFLINE",
-
             20,
-
-            canvas.height -
-            45
+            canvas.height - 45
         );
-
     } else {
-
-        ctx.fillStyle =
-            "#1b5e20";
+        ctx.fillStyle = "#1b5e20";
 
         ctx.fillText(
-
             "☀ POWER AVAILABLE",
-
             20,
-
-            canvas.height -
-            45
+            canvas.height - 45
         );
     }
 }
 
 
-// ===============================
-// BACKGROUND TREE
-// ===============================
-
-function drawTree(
-    x,
-    y
-) {
-
-    ctx.fillStyle =
-        "#5d4037";
-
+function drawTree(x, y) {
+    ctx.fillStyle = "#5d4037";
 
     ctx.fillRect(
-
         x - 8,
-
         y - 70,
-
         16,
-
         70
     );
 
-
     ctx.beginPath();
 
-
     ctx.arc(
-
         x,
-
         y - 80,
-
         45,
-
         0,
-
         Math.PI * 2
     );
 
-
-    ctx.fillStyle =
-        "#356b35";
-
+    ctx.fillStyle = "#356b35";
 
     ctx.fill();
 }
 
 
-// ===============================
-// WEATHER
-// ===============================
-
 function drawWeather() {
-
-
-    if (
-        !raining
-    ) {
-
+    if (!raining) {
         return;
     }
 
-
-    const rainAmount =
-        60;
-
+    const rainAmount = 60;
 
     ctx.strokeStyle =
         "rgba(180,220,255,0.55)";
 
-
-    ctx.lineWidth =
-        2;
-
-
-    // =======================
-    // RAIN DROPS
-    // =======================
+    ctx.lineWidth = 2;
 
     for (
-
         let i = 0;
-
-        i <
-        rainAmount;
-
+        i < rainAmount;
         i++
-
     ) {
-
-
         const x =
-
             (
                 i * 97 +
-
-                weatherTime *
-                100
-            )
-
-            %
-
+                weatherTime * 100
+            ) %
             canvas.width;
 
-
         const y =
-
             (
                 i * 53 +
-
-                weatherTime *
-                180
-            )
-
-            %
-
+                weatherTime * 180
+            ) %
             canvas.height;
-
 
         ctx.beginPath();
 
-
-        ctx.moveTo(
-            x,
-            y
-        );
-
+        ctx.moveTo(x, y);
 
         ctx.lineTo(
-
             x - 6,
-
             y + 18
         );
-
 
         ctx.stroke();
     }
 
-
-    // =======================
-    // REDUCED VISIBILITY
-    // =======================
-
     ctx.fillStyle =
         "rgba(70,90,110,0.22)";
 
-
     ctx.fillRect(
-
         0,
         0,
-
         canvas.width,
-
         canvas.height
     );
 
-
-    // =======================
-    // WEATHER MESSAGE
-    // =======================
-
-    ctx.fillStyle =
-        "white";
-
-
-    ctx.font =
-        "bold 16px Arial";
-
+    ctx.fillStyle = "white";
+    ctx.font = "bold 16px Arial";
 
     ctx.fillText(
-
         "🌧 HEAVY RAIN - REDUCED VISIBILITY",
-
         20,
-
         120
     );
 }
 
 
-// ===============================
-// USER INTERFACE
-// ===============================
-
 function updateUI() {
-
-
-    // =======================
-    // BATTERY TEXT
-    // =======================
-
     batteryDisplay.textContent =
-
-        Math.floor(
-            player.battery
-        ) +
-
+        Math.floor(player.battery) +
         "%";
-
-
-    // =======================
-    // BATTERY BAR
-    // =======================
 
     batteryFill.style.width =
+        player.battery + "%";
 
-        player.battery +
-        "%";
-
-
-    // Battery colour
-
-    if (
-
-        player.battery >
-        50
-
-    ) {
-
-        batteryFill
-            .style
-            .background =
-
+    if (player.battery > 50) {
+        batteryFill.style.background =
             "#4caf50";
-
     }
 
-    else if (
-
-        player.battery >
-        20
-
-    ) {
-
-        batteryFill
-            .style
-            .background =
-
+    else if (player.battery > 20) {
+        batteryFill.style.background =
             "#ff9800";
-
     }
 
     else {
-
-        batteryFill
-            .style
-            .background =
-
+        batteryFill.style.background =
             "#f44336";
     }
 
-
-    // =======================
-    // SCORE
-    // =======================
-
-    scoreDisplay.textContent =
-        score;
-
-
-    // =======================
-    // HIGH SCORE
-    // =======================
+    scoreDisplay.textContent = score;
 
     const highScore =
-
         Number(
-
-            localStorage
-                .getItem(
-                    "ecoDashHighScore"
-                )
-
+            localStorage.getItem(
+                "ecoDashHighScore"
+            )
         ) || 0;
 
-
     highScoreDisplay.textContent =
-
         Math.max(
-
             highScore,
-
             score
         );
-
-
-    // =======================
-    // DELIVERIES
-    // =======================
 
     deliveriesDisplay.textContent =
         deliveryCount;
 
-
-    // =======================
-    // DISTANCE
-    // =======================
-
     distanceDisplay.textContent =
-
-        player.distance
-            .toFixed(2) +
-
+        player.distance.toFixed(2) +
         " km";
 
-
-    // =======================
-    // ENERGY
-    // =======================
-
     energyDisplay.textContent =
+        player.energyUsed.toFixed(2);
 
-        player.energyUsed
-            .toFixed(2);
+    let efficiency = 0;
 
-
-    // =======================
-    // EFFICIENCY
-    // =======================
-
-    let efficiency =
-        0;
-
-
-    if (
-
-        player.energyUsed >
-        0
-
-    ) {
-
+    if (player.energyUsed > 0) {
         efficiency =
-
             player.distance /
-
             player.energyUsed;
     }
 
-
     efficiencyDisplay.textContent =
-
-        efficiency
-            .toFixed(2);
+        efficiency.toFixed(2);
 }
 
 
-// ===============================
-// START GAME
-// ===============================
-
 function startGame() {
+    player = new Player();
 
+    obstacles = [];
+    deliveries = [];
+    solarZones = [];
+    dustParticles = [];
 
-    // New player
+    score = 0;
+    deliveryCount = 0;
 
-    player =
-        new Player();
+    gameRunning = true;
+    gamePaused = false;
 
+    collisionCooldown = 0;
 
-    // Clear previous objects
-
-    obstacles =
-        [];
-
-    deliveries =
-        [];
-
-    solarZones =
-        [];
-
-
-    // Reset score
-
-    score =
-        0;
-
-
-    deliveryCount =
-        0;
-
-
-    // Game states
-
-    gameRunning =
-        true;
-
-    gamePaused =
-        false;
-
-
-    collisionCooldown =
-        0;
-
-
-    // Start with electricity
-
-    loadShedding =
-        false;
-
-
-    loadSheddingTimer =
-        0;
-
+    loadShedding = false;
+    loadSheddingTimer = 0;
 
     pauseScreen
         .classList
-        .add(
-            "hidden"
-        );
-
-
-    // =======================
-    // POTHOLE 1
-    // =======================
+        .add("hidden");
 
     obstacles.push(
-
         new Obstacle(
-
             350,
-
             210,
-
             80,
-
             40,
-
             "pothole"
         )
     );
 
-
-    // =======================
-    // POTHOLE 2
-    // =======================
-
     obstacles.push(
-
         new Obstacle(
-
             700,
-
             300,
-
             90,
-
             45,
-
             "pothole"
         )
     );
 
-
-    // =======================
-    // FALLEN TREE
-    // =======================
-
     obstacles.push(
-
         new Obstacle(
-
             900,
-
             190,
-
             120,
-
             35,
-
             "tree"
         )
     );
 
-
-    // =======================
-    // CONSTRUCTION
-    // =======================
-
     obstacles.push(
-
         new Obstacle(
-
             500,
-
             430,
-
             100,
-
             60,
-
             "construction"
         )
     );
 
-
-    // =======================
-    // FLOODED ROAD
-    // =======================
-
     obstacles.push(
-
         new Obstacle(
-
             1050,
-
             300,
-
             150,
-
             70,
-
             "river"
         )
     );
 
-
-    // =======================
-    // WILDLIFE
-    // =======================
-
     obstacles.push(
-
         new Obstacle(
-
             750,
-
-            canvas.height /
-            2 -
-            30,
-
+            canvas.height / 2 - 30,
             70,
-
             60,
-
             "wildlife"
         )
     );
 
-
-    // =======================
-    // SOLAR STATION 1
-    // =======================
-
     solarZones.push(
-
         new SolarZone(
-
             250,
-
-            canvas.height /
-            2 -
-            150,
-
+            canvas.height / 2 - 150,
             55
         )
     );
-
-
-    // =======================
-    // SOLAR STATION 2
-    // =======================
 
     solarZones.push(
-
         new SolarZone(
-
-            canvas.width -
-            180,
-
-            canvas.height /
-            2 +
-            150,
-
+            canvas.width - 180,
+            canvas.height / 2 + 150,
             55
         )
     );
 
-
-    // =======================
-    // DELIVERIES
-    // =======================
-
     createNewDelivery();
-
     createNewDelivery();
-
-
-    // Hide start screen
 
     startScreen
         .classList
-        .add(
-            "hidden"
-        );
-
-
-    // Hide game-over screen
+        .add("hidden");
 
     gameOverScreen
         .classList
-        .add(
-            "hidden"
-        );
-
+        .add("hidden");
 
     message.textContent =
-
         "Deliver supplies and recharge at solar microgrids. Press P to pause.";
-
 
     updateUI();
 }
 
 
-// ===============================
-// GAME OVER
-// ===============================
-
 function gameOver() {
-
-
-    gameRunning =
-        false;
-
-
-    // =======================
-    // GAME OVER SOUND
-    // =======================
+    gameRunning = false;
 
     playSound(
         100,
@@ -2527,201 +1250,90 @@ function gameOver() {
         "sawtooth"
     );
 
-
-    // Save high score
-
     saveHighScore();
 
-
-    // Final score
-
-    finalScoreDisplay
-        .textContent =
-
+    finalScoreDisplay.textContent =
         score;
-
-
-    // Show game over screen
 
     gameOverScreen
         .classList
-        .remove(
-            "hidden"
-        );
+        .remove("hidden");
 }
 
 
-// ===============================
-// SAVE HIGH SCORE
-// ===============================
-
 function saveHighScore() {
-
-
     const oldHighScore =
-
         Number(
-
-            localStorage
-                .getItem(
-                    "ecoDashHighScore"
-                )
-
+            localStorage.getItem(
+                "ecoDashHighScore"
+            )
         ) || 0;
 
-
-    if (
-
-        score >
-        oldHighScore
-
-    ) {
-
-        localStorage
-            .setItem(
-
-                "ecoDashHighScore",
-
-                score
-            );
+    if (score > oldHighScore) {
+        localStorage.setItem(
+            "ecoDashHighScore",
+            score
+        );
     }
 }
 
 
-// ===============================
-// DRAW GAME OBJECTS
-// ===============================
-
 function drawGameObjects() {
-
-
-    // Solar zones
-
     solarZones.forEach(
-
         function(zone) {
-
             zone.draw();
         }
     );
 
-
-    // Deliveries
-
     deliveries.forEach(
-
         function(delivery) {
-
             delivery.draw();
         }
     );
 
-
-    // Obstacles
-
     obstacles.forEach(
-
         function(obstacle) {
-
             obstacle.draw();
         }
     );
-
-
-    // Player
 
     player.draw();
 }
 
 
-// ===============================
-// MAIN GAME LOOP
-// ===============================
-
 function animate() {
-
-
-    // Draw background
-
     drawEnvironment();
 
+    if (gameRunning) {
+        if (!gamePaused) {
+            player.update(keys);
 
-    if (
-        gameRunning
-    ) {
-
-
-        // Update only if
-        // game is not paused
-
-        if (
-            !gamePaused
-        ) {
-
-
-            // Player physics
-
-            player.update(
-                keys
-            );
-
-
-            // Wind
+            createDust();
+            updateDust();
 
             updateEnvironment();
 
-
-            // Load-shedding
-
             updateLoadShedding();
-
-
-            // Obstacles
 
             checkObstacles();
 
-
-            // Solar charging
-
             checkSolarZones();
-
-
-            // Deliveries
 
             checkDeliveries();
 
-
-            // Update HUD
-
             updateUI();
 
-
-            // ===================
-            // GAME OVER
-            // ===================
-
-            if (
-
-                player.battery <=
-                0
-
-            ) {
-
+            if (player.battery <= 0) {
                 gameOver();
             }
         }
 
-
-        // Draw objects
+        drawDust();
 
         drawGameObjects();
 
-
-        // Draw rain
-
         drawWeather();
     }
-
 
     requestAnimationFrame(
         animate
@@ -2729,64 +1341,35 @@ function animate() {
 }
 
 
-// ===============================
-// BUTTONS
-// ===============================
-
-
-// Start game
-
 startButton.addEventListener(
-
     "click",
-
     function() {
-
         startGame();
     }
 );
 
-
-// Restart game
 
 restartButton.addEventListener(
-
     "click",
-
     function() {
-
         startGame();
     }
 );
 
 
-// Resume game
-
 resumeButton.addEventListener(
-
     "click",
-
     function() {
-
-        gamePaused =
-            false;
-
+        gamePaused = false;
 
         pauseScreen
             .classList
-            .add(
-                "hidden"
-            );
-
+            .add("hidden");
 
         message.textContent =
             "Game resumed";
     }
 );
 
-
-// ===============================
-// START ANIMATION
-// ===============================
 
 animate();
