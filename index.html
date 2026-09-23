@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoDash - African Logistics Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="gameUI">
+        <h1>EcoDash</h1>
+        <p>African Digital Logistics Simulator</p>
+
+   <div class="stats">
+
+    <div class="stat-card">
+        <span>🔋 Battery</span>
+        <strong id="battery">100%</strong>
+
+        <div class="battery-bar">
+            <div id="batteryFill"></div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <span>🏆 Score</span>
+        <strong id="score">0</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>🥇 High Score</span>
+        <strong id="highScore">0</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>📦 Deliveries</span>
+        <strong id="deliveries">0</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>📏 Distance</span>
+        <strong id="distance">0 km</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>⚡ Energy</span>
+        <strong id="energy">0</strong>
+    </div>
+
+    <div class="stat-card">
+        <span>📊 Efficiency</span>
+        <strong id="efficiency">0</strong>
+    </div>
+
+</div>
+
+</div>
+
+        <div id="message">
+            Use ↑ ↓ to move and ← → to turn
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="startScreen">
+        <h2>🌍 EcoDash</h2>
+        <p>Deliver supplies across the African landscape.</p>
+        <button id="startButton">Start Game</button>
+    </div>
+
+    <div id="pauseScreen" class="hidden">
+        <h2>⏸ Game Paused</h2>
+         <p>Press <strong>P</strong> to continue your delivery.</p>
+         <button id="resumeButton">Resume</button>
+    </div>
+
+    <div id="gameOverScreen" class="hidden">
+        <h2>Game Over</h2>
+        <p>Final Score: <strong id="finalScore">0</strong></p>
+        <button id="restartButton">Play Again</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
