@@ -153,3 +153,11 @@ Tebello Mokhomong
 WAS262 – Web Animation Scripting  
 STADIO Higher Education
 
+## Project Documentation
+
+Supporting documentation for EcoDash is available in the `docs` folder:
+
+- African Context Report
+- User Interface Wireframe
+- AI Reflection Log
+- Project Screenshot
